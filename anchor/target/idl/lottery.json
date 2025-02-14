@@ -1,0 +1,748 @@
+{
+  "address": "AQLmmdbK9bSZPq77LG5mvBaYJyDmP5phge98VNcv8VnZ",
+  "metadata": {
+    "name": "lottery",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "buy_ticket",
+      "discriminator": [
+        11,
+        24,
+        17,
+        193,
+        168,
+        116,
+        164,
+        169
+      ],
+      "accounts": [
+        {
+          "name": "lottery",
+          "writable": true
+        },
+        {
+          "name": "escrow_wallet",
+          "writable": true,
+          "relations": [
+            "lottery"
+          ]
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "clock",
+          "address": "SysvarC1ock11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "choose_winner",
+      "discriminator": [
+        94,
+        248,
+        225,
+        4,
+        43,
+        60,
+        118,
+        243
+      ],
+      "accounts": [
+        {
+          "name": "lottery",
+          "writable": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "clock",
+          "address": "SysvarC1ock11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "randomness_helper",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "claim_prize",
+      "discriminator": [
+        157,
+        233,
+        139,
+        121,
+        246,
+        62,
+        234,
+        235
+      ],
+      "accounts": [
+        {
+          "name": "lottery",
+          "writable": true
+        },
+        {
+          "name": "claimable_wallet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  110,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "lottery"
+              },
+              {
+                "kind": "account",
+                "path": "lottery.winner.ok_or(ErrorCode :: NoWinner) ? ",
+                "account": "LotteryState"
+              }
+            ]
+          },
+          "relations": [
+            "lottery"
+          ]
+        },
+        {
+          "name": "winner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_lottery",
+      "discriminator": [
+        113,
+        199,
+        243,
+        247,
+        73,
+        217,
+        33,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "lottery",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  111,
+                  116,
+                  116,
+                  101,
+                  114,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "arg",
+                "path": "title"
+              }
+            ]
+          }
+        },
+        {
+          "name": "escrow_wallet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "lottery"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "clock",
+          "address": "SysvarC1ock11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "deadline",
+          "type": "i64"
+        },
+        {
+          "name": "platform_fee_bps",
+          "type": "u64"
+        },
+        {
+          "name": "platform_wallet",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "transfer_to_claimable_wallet",
+      "discriminator": [
+        71,
+        185,
+        204,
+        46,
+        82,
+        231,
+        54,
+        235
+      ],
+      "accounts": [
+        {
+          "name": "lottery",
+          "writable": true
+        },
+        {
+          "name": "escrow_wallet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  115,
+                  99,
+                  114,
+                  111,
+                  119
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "lottery"
+              }
+            ]
+          },
+          "relations": [
+            "lottery"
+          ]
+        },
+        {
+          "name": "platform_wallet",
+          "writable": true,
+          "relations": [
+            "lottery"
+          ]
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "claimable_wallet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  110,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "lottery"
+              },
+              {
+                "kind": "account",
+                "path": "lottery.winner.ok_or(ErrorCode :: NoWinner) ? ",
+                "account": "LotteryState"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ClaimableWallet",
+      "discriminator": [
+        50,
+        157,
+        225,
+        234,
+        109,
+        6,
+        201,
+        134
+      ]
+    },
+    {
+      "name": "EscrowWallet",
+      "discriminator": [
+        238,
+        110,
+        99,
+        88,
+        94,
+        75,
+        187,
+        110
+      ]
+    },
+    {
+      "name": "LotteryState",
+      "discriminator": [
+        196,
+        210,
+        202,
+        219,
+        204,
+        63,
+        133,
+        85
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "LotteryEvent",
+      "discriminator": [
+        87,
+        41,
+        253,
+        158,
+        28,
+        212,
+        12,
+        34
+      ]
+    },
+    {
+      "name": "PayoutEvent",
+      "discriminator": [
+        84,
+        234,
+        195,
+        72,
+        143,
+        79,
+        70,
+        82
+      ]
+    },
+    {
+      "name": "TicketEvent",
+      "discriminator": [
+        210,
+        134,
+        105,
+        151,
+        129,
+        16,
+        28,
+        47
+      ]
+    },
+    {
+      "name": "WinnerEvent",
+      "discriminator": [
+        80,
+        230,
+        123,
+        48,
+        43,
+        207,
+        255,
+        183
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidFee",
+      "msg": "Invalid fees, max 50% "
+    },
+    {
+      "code": 6001,
+      "name": "InvalidDeadline",
+      "msg": "Invalid deadline"
+    },
+    {
+      "code": 6002,
+      "name": "LotteryClosed",
+      "msg": "Lottery is closed"
+    },
+    {
+      "code": 6003,
+      "name": "DeadlinePassed",
+      "msg": "Deadline has passed"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidAmount",
+      "msg": "Invalid amount"
+    },
+    {
+      "code": 6005,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6006,
+      "name": "Unauthorized",
+      "msg": "Unauthorized access"
+    },
+    {
+      "code": 6007,
+      "name": "NoEntries",
+      "msg": "No entries available"
+    },
+    {
+      "code": 6008,
+      "name": "RandomnessError",
+      "msg": "Something wrong in choosing winner"
+    },
+    {
+      "code": 6009,
+      "name": "WinnerAlreadyChosen",
+      "msg": "Winner already chosen"
+    },
+    {
+      "code": 6010,
+      "name": "DeadlineNotPassed",
+      "msg": "Deadline not passed yet"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidState",
+      "msg": "Invalid program state"
+    },
+    {
+      "code": 6012,
+      "name": "FeeCalculationError",
+      "msg": "Platform fee calculation error "
+    },
+    {
+      "code": 6013,
+      "name": "InsufficientFunds",
+      "msg": "Lottery wallet has no funds"
+    },
+    {
+      "code": 6014,
+      "name": "NoWinner",
+      "msg": "Winner hasn't been choosen "
+    }
+  ],
+  "types": [
+    {
+      "name": "ClaimableWallet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EscrowWallet",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LotteryEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "event_type",
+            "type": "string"
+          },
+          {
+            "name": "lottery",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LotteryState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "deadline",
+            "type": "i64"
+          },
+          {
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "total_entry",
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u64"
+          },
+          {
+            "name": "platform_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "lottery_bump",
+            "type": "u8"
+          },
+          {
+            "name": "escrow_bump",
+            "type": "u8"
+          },
+          {
+            "name": "claimable_bump",
+            "type": "u8"
+          },
+          {
+            "name": "escrow_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "claimable_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "LotteryStatus"
+              }
+            }
+          },
+          {
+            "name": "winner",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "lottery_drawer",
+            "type": "pubkey"
+          },
+          {
+            "name": "participants",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Participant"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "LotteryStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "WinnerSelected"
+          },
+          {
+            "name": "Completed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Participant",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayoutEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "winner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "lottery",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TicketEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "buyer",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "total_entries",
+            "type": "u64"
+          },
+          {
+            "name": "lottery",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WinnerEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "winner",
+            "type": "pubkey"
+          },
+          {
+            "name": "lottery",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
