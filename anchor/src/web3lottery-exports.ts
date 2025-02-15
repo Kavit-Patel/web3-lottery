@@ -30,7 +30,7 @@ export function getWeb3lotteryProgramId(cluster: Cluster) {
     case "devnet":
     case "testnet":
       // This is the program ID for the Web3lottery program on devnet and testnet.
-      return new PublicKey("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF");
+      return new PublicKey("AQLmmdbK9bSZPq77LG5mvBaYJyDmP5phge98VNcv8VnZ");
     case "mainnet-beta":
     default:
       return WEB3LOTTERY_PROGRAM_ID;
