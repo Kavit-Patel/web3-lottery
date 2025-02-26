@@ -14,6 +14,7 @@ const links: { label: string; path: string }[] = [
   { label: "Clusters", path: "/clusters" },
   { label: "Admin-Create-Lottery", path: "/createLottery" },
   { label: "Participants-Buy-Lottery", path: "/buyLottery" },
+  { label: "Admin-Execute-Lottery", path: "/executeLottery" },
 ];
 
 export default function RootLayout({

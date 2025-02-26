@@ -38,7 +38,3 @@ body {
   border-radius: 5px;
   min-height: 30px !important;
 }
-
-.ps__thumb-y:hover {
-  background-color: #555;
-}
