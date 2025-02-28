@@ -1,7 +1,7 @@
 "use client";
 
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { FormEvent, useMemo, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, useMemo, useState } from "react";
 import { ellipsify } from "../ui/ui-layout";
 import { ExplorerLink } from "../cluster/cluster-ui";
 import {
@@ -43,6 +43,10 @@ export function Web3lotteryCreate({ wallet }: { wallet: WalletContextState }) {
       platform_fee_bps: new BN(+fee),
       platform_wallet: new PublicKey(platformWallet),
     });
+    setTitle("");
+    setDeadline(null);
+    setFee("");
+    setPlatformWallet("");
   };
 
   return (
@@ -120,7 +124,8 @@ export function Web3lotteryList({ walletPubKey }: { walletPubKey: PublicKey }) {
         </div>
         {showList && (
           <>
-            {lotteryAccounts.data?.lotteriesIOwn?.length ? (
+            {lotteryAccounts.data &&
+            lotteryAccounts.data.lotteriesIOwn?.length ? (
               <>
                 <button
                   onClick={() => setShowList(false)}
@@ -168,7 +173,7 @@ export function Web3lotteryList({ walletPubKey }: { walletPubKey: PublicKey }) {
 export function Web3lotteryCard({ lottery }: { lottery: ILottery }) {
   return (
     <div className="flex justify-center items-center">
-      <div className="rounded-2xl shadow-xl p-4 text-gray-100 transition transform  hover:shadow-2xl ">
+      <div className="w-full rounded-2xl shadow-xl p-4 text-gray-100 transition transform  hover:shadow-2xl ">
         <h2 className="text-3xl font-extrabold mb-4 text-center">
           {lottery.title || "N/A"}
         </h2>
@@ -185,11 +190,11 @@ export function Web3lotteryCard({ lottery }: { lottery: ILottery }) {
           </p>
           <p>
             <span className="font-semibold">Total Amount:</span>{" "}
-            {lottery.total_amount?.toString() || "N/A"}
+            {lottery.totalAmount?.toNumber() || "N/A"}
           </p>
           <p>
             <span className="font-semibold">Total Entries:</span>{" "}
-            {lottery.total_entry?.toString() || "N/A"}
+            {lottery.totalEntry?.toNumber() || "N/A"}
           </p>
           <p>
             <span className="font-semibold">Status:</span>{" "}
@@ -209,13 +214,26 @@ export function Web3lotteryCard({ lottery }: { lottery: ILottery }) {
               "N/A"
             )}
           </p>
-          <p>
+          <p className="w-inherit truncate">
             <span className="font-semibold">Winner:</span>{" "}
             {lottery.winner?.toString() || "Lottery Draw Due"}
           </p>
-          <p>
-            <span className="font-semibold">Lottery Drawer:</span>{" "}
-            {lottery.lottery_drawer?.toString() || "Lottery Draw Due"}
+          <p
+            className="w-inherit truncate"
+            title={lottery.lotteryDrawer?.toString()}
+          >
+            <span className="font-semibold ">Lottery Drawer:</span>{" "}
+            {(lottery.lotteryDrawer?.toString() !==
+              "11111111111111111111111111111111" &&
+              lottery.lotteryDrawer?.toString()) ||
+              "Lottery Draw Due"}
+          </p>
+          <p className="w-inherit truncate">
+            <span className="font-semibold ">Claimable Wallet:</span>{" "}
+            {(lottery.claimableWallet?.toString() !==
+              "11111111111111111111111111111111" &&
+              lottery.claimableWallet?.toString()) ||
+              "Transfer Pending"}
           </p>
         </div>
         <div className="mt-4">
@@ -257,57 +275,57 @@ export function Web3LotteryLive({ wallet }: { wallet: WalletContextState }) {
         List of Live Lotteries
       </h2>
       <div className="w-full md:w-[68rem] md:text-xl h-[calc(100vh-410px)]">
-        {/* <PerfectScrollbar
+        <PerfectScrollbar
           className="w-full gap-3 flex flex-col items-center overflow-auto"
           options={{
             suppressScrollX: true,
             wheelPropagation: false,
           }}
-        > */}
-        {allLotteries.data.filter(
-          (lotteries) =>
-            lotteries.account.deadline.toNumber() >
-            Math.floor(Date.now() / 1000)
-        ).length > 0 ? (
-          allLotteries.data
-            .filter(
-              (lotteries) =>
-                lotteries.account.deadline.toNumber() >
-                Math.floor(Date.now() / 1000)
-            )
-            .map((activeLottery) => (
-              <div
-                onClick={() => setSelectedLottery(activeLottery)}
-                key={activeLottery.publicKey.toString()}
-                className={`w-full flex gap-2 sm:grid sm:grid-cols-[1fr_3fr] px-2 md:px-8 py-3 rounded-md transition-all cursor-pointer 
+        >
+          {allLotteries.data.filter(
+            (lotteries) =>
+              lotteries.account.deadline.toNumber() >
+              Math.floor(Date.now() / 1000)
+          ).length > 0 ? (
+            allLotteries.data
+              .filter(
+                (lotteries) =>
+                  lotteries.account.deadline.toNumber() >
+                  Math.floor(Date.now() / 1000)
+              )
+              .map((activeLottery) => (
+                <div
+                  onClick={() => setSelectedLottery(activeLottery)}
+                  key={activeLottery.publicKey.toString()}
+                  className={`w-full flex gap-2 sm:grid sm:grid-cols-[1fr_3fr] px-2 md:px-8 py-3 rounded-md transition-all cursor-pointer 
                   ${
                     selectedLottery?.publicKey.toString() ===
                     activeLottery.publicKey.toString()
                       ? "bg-gray-900 scale-105 shadow-xl"
                       : "bg-gray-700 hover:bg-gray-900 hover:scale-105 hover:shadow-xl"
                   }`}
-              >
-                <span className="">{activeLottery.account.title}</span>
-                <span className="truncate w-24 sm:w-full">
-                  {activeLottery.account.owner.toString()}
-                </span>
-              </div>
-            ))
-        ) : (
-          <div className="w-full flex h-96 justify-center items-center">
-            <span>
-              {" "}
-              No Live Lotteries !{" "}
-              <Link
-                href="/createLottery"
-                className="text-blue-300 transition-all hover:text-blue-400 active:scale-95"
-              >
-                Create One !
-              </Link>
-            </span>
-          </div>
-        )}
-        {/* </PerfectScrollbar> */}
+                >
+                  <span className="">{activeLottery.account.title}</span>
+                  <span className="truncate w-24 sm:w-full">
+                    {activeLottery.account.owner.toString()}
+                  </span>
+                </div>
+              ))
+          ) : (
+            <div className="w-full flex h-96 justify-center items-center">
+              <span>
+                {" "}
+                No Live Lotteries !{" "}
+                <Link
+                  href="/createLottery"
+                  className="text-blue-300 transition-all hover:text-blue-400 active:scale-95"
+                >
+                  Create One !
+                </Link>
+              </span>
+            </div>
+          )}
+        </PerfectScrollbar>
       </div>
       {selectedLottery && (
         <Web3LotteryBuyCard wallet={wallet} lottery={selectedLottery} />
@@ -338,7 +356,7 @@ export function Web3LotteryBuyCard({
       wallet,
       amount: new BN(amount * 1000000000),
       lottery: lottery.publicKey,
-      lotteryWallet: lottery.account.escrow_wallet,
+      lotteryWallet: lottery.account.escrowWallet,
     });
   };
 
@@ -368,6 +386,134 @@ export function Web3LotteryBuyCard({
             <div className="text-xs loading loading-spinner"></div>
           ) : (
             "Buy"
+          )}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export function Web3LotteryExecution({
+  wallet,
+}: {
+  wallet: WalletContextState;
+}) {
+  const { allLotteries } = useWeb3lotteryProgram();
+  const [selectedLottery, setSelectedLottery] =
+    useState<ProgramAccount<ILottery> | null>(null);
+  return allLotteries.isPending ? (
+    <div className="loading loading-spinner"></div>
+  ) : allLotteries.error ? (
+    <div className="w-full h-full justify-center items-center">
+      {allLotteries.error.message}
+    </div>
+  ) : allLotteries.data ? (
+    <>
+      <h2 className="w-full md:w-[68rem] mt-12 mb-4 text-xl md:text-3xl text-center">
+        List of Lotteries Tobe Executed
+      </h2>
+      <div className="w-full md:w-[68rem] md:text-xl h-[calc(100vh-410px)]">
+        <PerfectScrollbar
+          className="w-full gap-3 flex flex-col items-center overflow-auto"
+          options={{
+            suppressScrollX: true,
+            wheelPropagation: false,
+          }}
+        >
+          {allLotteries.data.filter(
+            (lotteries) =>
+              Object.keys(lotteries.account.status)[0] != "completed" &&
+              lotteries.account.claimableWallet.toString() ==
+                "11111111111111111111111111111111" &&
+              lotteries.account.participants.length &&
+              lotteries.account.deadline.toNumber() <
+                Math.floor(Date.now() / 1000)
+          ).length > 0 ? (
+            allLotteries.data
+              .filter(
+                (lotteries) =>
+                  Object.keys(lotteries.account.status)[0] != "completed" &&
+                  lotteries.account.claimableWallet.toString() ==
+                    "11111111111111111111111111111111" &&
+                  lotteries.account.participants.length &&
+                  lotteries.account.deadline.toNumber() <
+                    Math.floor(Date.now() / 1000)
+              )
+              .map((lotteriesTobeExecuted) => (
+                <div
+                  onClick={() => setSelectedLottery(lotteriesTobeExecuted)}
+                  key={lotteriesTobeExecuted.publicKey.toString()}
+                  className={`w-full flex gap-2 sm:grid sm:grid-cols-[1fr_3fr] px-2 md:px-8 py-3 rounded-md transition-all cursor-pointer 
+                  ${
+                    selectedLottery?.publicKey.toString() ===
+                    lotteriesTobeExecuted.publicKey.toString()
+                      ? "bg-gray-900 scale-105 shadow-xl"
+                      : "bg-gray-700 hover:bg-gray-900 hover:scale-105 hover:shadow-xl"
+                  }`}
+                >
+                  <span className="">
+                    {lotteriesTobeExecuted.account.title}
+                  </span>
+                  <span className="truncate w-24 sm:w-full">
+                    {lotteriesTobeExecuted.account.owner.toString()}
+                  </span>
+                </div>
+              ))
+          ) : (
+            <div className="w-full flex h-96 justify-center items-center">
+              <span> No Lotteries tobe executed ! </span>
+            </div>
+          )}
+        </PerfectScrollbar>
+      </div>
+      {selectedLottery && (
+        <ExecuteLotteryCard
+          wallet={wallet}
+          lottery={selectedLottery}
+          setSelectedLottery={setSelectedLottery}
+        />
+      )}
+    </>
+  ) : (
+    <div>Something went wrong</div>
+  );
+}
+
+export function ExecuteLotteryCard({
+  wallet,
+  lottery,
+  setSelectedLottery,
+}: {
+  wallet: WalletContextState;
+  lottery: ProgramAccount<ILottery>;
+  setSelectedLottery: Dispatch<SetStateAction<ProgramAccount<ILottery> | null>>;
+}) {
+  const { executeLottery } = useWeb3lotteryProgram();
+  const handleExecuteLottery = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await executeLottery.mutateAsync({ wallet, lottery: lottery.publicKey });
+    setSelectedLottery(null);
+  };
+  return (
+    <div className="mt-10 flex flex-col w-full  justify-center items-center gap-4">
+      <form
+        onSubmit={(e) => handleExecuteLottery(e)}
+        className="w-[28rem] rounded-md flex flex-col gap-4 justify-center items-center border border-gray-500 p-10"
+      >
+        <h2 className="text-2xl mb-8">
+          Execute Lottery - {lottery?.account.title}
+        </h2>
+        <button
+          className="btn btn-xs btn-md btn-primary w-full"
+          disabled={executeLottery.isPending}
+        >
+          {executeLottery.isPending ? (
+            <div className="text-xs loading loading-spinner"></div>
+          ) : lottery.account.claimableWallet.toString() ==
+            "11111111111111111111111111111111" ? (
+            "Transfer to Claimable Wallet"
+          ) : (
+            "Execute"
           )}
         </button>
       </form>

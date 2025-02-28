@@ -15,7 +15,12 @@ import toast from "react-hot-toast";
 import { useCluster } from "../cluster/cluster-data-access";
 import { useAnchorProvider } from "../solana/solana-provider";
 import { useTransactionToast } from "../ui/ui-layout";
-import { ICreateLottery, ILottery } from "./types";
+import {
+  ICreateLottery,
+  ILottery,
+  ILotteryChooseWinner,
+  ILotteryTransferLotteryCash,
+} from "./types";
 import Error from "next/error";
 import { ProgramAccount, Wallet } from "@coral-xyz/anchor";
 import BN from "bn.js";
@@ -40,7 +45,6 @@ export function useWeb3lotteryProgram() {
     queryFn: async () =>
       (await program.account.lotteryState.all()) as unknown as ProgramAccount<ILottery>[],
   });
-
   const createLottery = useMutation<string, Error, ICreateLottery>({
     mutationKey: ["lottery", "create", { cluster }],
     mutationFn: async ({
@@ -140,11 +144,87 @@ export function useWeb3lotteryProgram() {
       toast.error(ErrorMessage(error));
     },
   });
+  const executeLottery = useMutation<
+    ILotteryTransferLotteryCash,
+    Error,
+    ILotteryChooseWinner
+  >({
+    mutationKey: ["execute", "lottery", { cluster }],
+    mutationFn: async ({ wallet, lottery }) => {
+      let lotteryAcc = await program.account.lotteryState.fetch(lottery);
+      if (!lotteryAcc.winner) {
+        const randomness_helper = Math.floor(
+          (Math.random() * 10000 * Date.now()) / 1000000
+        );
+        console.log("rand helper ", randomness_helper);
+        const choose_winner_tx = await program.methods
+          .chooseWinner(new BN(randomness_helper))
+          .accounts({
+            lottery,
+            signer: wallet.publicKey!,
+          })
+          .rpc();
+        const latestBlockHash = await connection.getLatestBlockhash();
+        await connection.confirmTransaction({
+          signature: choose_winner_tx,
+          blockhash: latestBlockHash.blockhash,
+          lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+        });
+        await allLotteries.refetch();
+        toast("Winner has been choosen !");
+        transactionToast(choose_winner_tx);
+      }
+      lotteryAcc = await program.account.lotteryState.fetch(lottery);
+      return {
+        wallet: wallet,
+        lottery,
+        winner: lotteryAcc.winner!,
+        escrowWallet: lotteryAcc.escrowWallet,
+        platformWallet: lotteryAcc.platformWallet,
+      };
+    },
+    onSuccess: async ({
+      wallet,
+      lottery,
+      winner,
+      escrowWallet,
+      platformWallet,
+    }) => {
+      const claimableWalletPda = PublicKey.findProgramAddressSync(
+        [Buffer.from("winner"), lottery.toBuffer(), winner.toBuffer()],
+        programId
+      )[0];
+      const lottery_cash_tx = await program.methods
+        .transferToClaimableWallet()
+        .accounts({
+          lottery,
+          escrowWallet,
+          platformWallet,
+          signer: wallet.publicKey!,
+          claimableWallet: claimableWalletPda,
+        } as any)
+        .rpc();
+      const latestBlockHash = await connection.getLatestBlockhash();
+      await connection.confirmTransaction({
+        signature: lottery_cash_tx,
+        blockhash: latestBlockHash.blockhash,
+        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      });
+      allLotteries.refetch();
+      toast.success("Lottery cash transfered to claimable wallet !");
+      transactionToast(lottery_cash_tx);
+    },
+    onError: (error) => {
+      console.log("Error :", error);
+      toast.error(ErrorMessage(error));
+    },
+  });
   return {
     createLottery,
     program,
     allLotteries,
     buyLottery,
+    executeLottery,
   };
 }
 export const useLotteryAccounts = (walletPubKey: PublicKey) => {

@@ -7,6 +7,7 @@ import { ExplorerLink } from "../cluster/cluster-ui";
 import { useWeb3lotteryProgram } from "./web3lottery-data-access";
 import {
   Web3lotteryCreate,
+  Web3LotteryExecution,
   Web3lotteryList,
   Web3LotteryLive,
 } from "./web3lottery-ui";
@@ -24,6 +25,8 @@ export default function Web3lotteryFeature() {
         </>
       ) : pathname == "/buyLottery" ? (
         <Web3LotteryLive wallet={wallet} />
+      ) : pathname == "/executeLottery" ? (
+        <Web3LotteryExecution wallet={wallet} />
       ) : (
         <div className="w-full h-96 flex justify-center items-center">
           Feature Under development
